@@ -55,3 +55,10 @@ coverage/
 .runpod/
 *.avlt
 solana-keypair*.json
+
+# Local-only GPU runtime (vLLM + LMCache + Cloudflare tunnel).
+# Self-contained and personal — see runbook/README.md.
+runbook/
+
+# Claude Code session state
+.claude/

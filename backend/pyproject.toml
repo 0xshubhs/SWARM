@@ -49,11 +49,11 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-addopts = "-ra"
+addopts = "-ra -p no:anchorpy"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["api", "indexer", "workers"]
+packages = ["api", "chain", "indexer", "jobs", "runtime", "storage", "workers"]
