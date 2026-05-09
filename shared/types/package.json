@@ -1,0 +1,31 @@
+{
+  "name": "@agentvault/types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./idl": {
+      "types": "./dist/idl.d.ts",
+      "import": "./dist/idl.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"(types: no lint)\" && exit 0",
+    "test": "echo \"(types: no tests)\" && exit 0",
+    "clean": "rm -rf dist .turbo node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

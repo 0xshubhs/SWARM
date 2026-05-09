@@ -1,0 +1,51 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [".env", "tsconfig.base.json"],
+  "globalEnv": [
+    "NODE_ENV",
+    "SOLANA_NETWORK",
+    "SOLANA_RPC_URL",
+    "AGENTVAULT_PROGRAM_ID",
+    "USDC_MINT",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "BUNDLR_NETWORK",
+    "BUNDLR_KEYPAIR",
+    "X402_FACILITATOR_URL",
+    "X402_TREASURY",
+    "WORKER_URL",
+    "WORKER_API_KEY",
+    "VLLM_ENDPOINT",
+    "LMCACHE_REMOTE_URL"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "clean": {
+      "cache": false
+    },
+    "install:py": {
+      "cache": false,
+      "outputs": [".venv/**"]
+    }
+  }
+}

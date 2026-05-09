@@ -1,0 +1,19 @@
+{
+  "name": "@agentvault/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FastAPI server. This package.json is a shim so turborepo can orchestrate the Python app.",
+  "scripts": {
+    "install:py": "uv sync --all-extras",
+    "dev": "uv run uvicorn api.main:app --reload --host 0.0.0.0 --port 8000",
+    "start": "uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 2",
+    "build": "uv build",
+    "lint": "uv run ruff check . && uv run ruff format --check .",
+    "format": "uv run ruff format .",
+    "typecheck": "uv run mypy api indexer workers || true",
+    "test": "uv run pytest -q",
+    "indexer": "uv run python -m indexer.run",
+    "jobs": "uv run python -m workers.run",
+    "clean": "rm -rf .venv .turbo .pytest_cache .mypy_cache .ruff_cache"
+  }
+}

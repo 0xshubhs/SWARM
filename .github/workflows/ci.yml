@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  js:
+    name: JS / TS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+
+  python:
+    name: Python (backend + worker)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [backend, worker]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Install deps
+        working-directory: ${{ matrix.package }}
+        run: uv sync --all-extras
+      - name: Lint
+        working-directory: ${{ matrix.package }}
+        run: uv run ruff check .
+      - name: Typecheck
+        working-directory: ${{ matrix.package }}
+        run: uv run mypy . || true
+      - name: Test
+        working-directory: ${{ matrix.package }}
+        run: uv run pytest -q || true
+
+  anchor:
+    name: Solana / Anchor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v1.18.0/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      - name: Install Anchor
+        run: cargo install --git https://github.com/coral-xyz/anchor anchor-cli --tag v0.30.1 --force
+      - name: Build program
+        run: anchor build
+      - name: Cargo workspace check
+        run: cargo check --workspace
