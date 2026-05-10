@@ -1,0 +1,37 @@
+{
+  "name": "AgentVault Worker",
+  "image": "<your-dockerhub-username>/agentvault-worker:latest",
+  "container_disk_size_gb": 50,
+  "volume_disk_size_gb": 0,
+  "ports": [
+    {"container": 8001, "host": 8001, "protocol": "HTTP"}
+  ],
+  "env": [
+    {
+      "key": "WORKER_API_KEY",
+      "value": "<generate-random-secret>"
+    },
+    {
+      "key": "VLLM_ENDPOINT",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "HF_MODEL_ID",
+      "value": "Qwen/Qwen2.5-7B-Instruct"
+    },
+    {
+      "key": "TURBOQUANT_BITS",
+      "value": "3.5"
+    },
+    {
+      "key": "HF_TOKEN",
+      "value": "<your-huggingface-token>"
+    }
+  ],
+  "resources": {
+    "gpu": "A10G",
+    "cpu": 4,
+    "memory_gb": 32
+  },
+  "docker_run_options": ["--gpus", "all"]
+}

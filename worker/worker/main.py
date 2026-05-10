@@ -1,16 +1,6 @@
-"""TurboQuant worker entry point. Build per docs/03_TURBOQUANT_WORKER.md."""
-
+"""TurboQuant worker entry point — imports server app."""
 from __future__ import annotations
 
-from fastapi import FastAPI
+from worker.server.main import app
 
-app = FastAPI(title="AgentVault Worker", version="0.1.0")
-
-
-@app.get("/healthz")
-async def healthz() -> dict[str, str]:
-    return {"status": "ok"}
-
-
-# TODO: implement /compress, /decompress, /benchmark, /load, /inference
-# See docs/03_TURBOQUANT_WORKER.md §3 (architecture) and §5 (API surface).
+__all__ = ["app"]
