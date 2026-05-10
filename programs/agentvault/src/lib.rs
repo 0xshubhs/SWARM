@@ -12,7 +12,7 @@ use instructions::*;
 
 // Placeholder until first deploy. Replace via:
 //   solana address -k target/deploy/agentvault-keypair.json
-declare_id!("AgntVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1");
+declare_id!("HvWGEDbnRCVThyCNwUVpFRfWsHx2aqT9Ttotr4QovGCF");
 
 #[program]
 pub mod agentvault {

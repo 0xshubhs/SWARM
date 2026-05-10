@@ -7,8 +7,9 @@ import torch
 from fastapi.testclient import TestClient
 
 from worker.main import app
+from worker.server.config import settings
 
-client = TestClient(app)
+client = TestClient(app, headers={"X-API-Key": settings.WORKER_API_KEY})
 
 
 class TestHealth:

@@ -5,9 +5,11 @@ import io
 import json
 
 import torch
-from fastapi import APIRouter, File, HTTPException, Query, Response, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 
 from worker.turboquant.compress import compress
+
+from ..auth import require_api_key
 
 router = APIRouter()
 
@@ -17,6 +19,7 @@ async def compress_endpoint(
     file: UploadFile = File(...),
     bits: float = Query(default=3.5, ge=1.0, le=8.0),
     seed: int = Query(default=42, ge=0),
+    _api_key: str = Depends(require_api_key),
 ) -> Response:
     """Compress a KV cache tensor to TurboQuant blob.
 

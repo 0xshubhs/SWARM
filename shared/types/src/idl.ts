@@ -5,6 +5,9 @@
  */
 
 export const AGENTVAULT_IDL = {
+  // Anchor 0.30 reads `address` here directly; `metadata.address` retained for
+  // older tooling that may still look there.
+  address: "HvWGEDbnRCVThyCNwUVpFRfWsHx2aqT9Ttotr4QovGCF",
   version: "0.1.0",
   name: "agentvault",
   instructions: [
@@ -271,7 +274,7 @@ export const AGENTVAULT_IDL = {
     { code: 6019, name: "InvalidFeeBps", msg: "Fee bps must be <= 10000" },
   ],
   metadata: {
-    address: "AgntVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1",
+    address: "HvWGEDbnRCVThyCNwUVpFRfWsHx2aqT9Ttotr4QovGCF",
   },
 } as const;
 

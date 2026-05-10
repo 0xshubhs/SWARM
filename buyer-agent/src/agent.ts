@@ -1,6 +1,30 @@
 import { Connection, Keypair } from "@solana/web3.js";
+import bs58 from "bs58";
 
 import { config } from "./config.js";
+
+/**
+ * Decode an agent wallet from one of:
+ *  - base58 secret key (87-char Phantom-style export)
+ *  - JSON array of 64 ints (Solana CLI keypair file contents)
+ * Throws if the value can't be parsed — we'd rather fail loudly than silently
+ * fall back to a throwaway wallet that has no USDC.
+ */
+function loadKeypair(raw: string): Keypair {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("[")) {
+    const arr = JSON.parse(trimmed) as number[];
+    if (arr.length !== 64) {
+      throw new Error(`AGENT_KEYPAIR JSON array must be 64 bytes, got ${arr.length}`);
+    }
+    return Keypair.fromSecretKey(Uint8Array.from(arr));
+  }
+  const bytes = bs58.decode(trimmed);
+  if (bytes.length !== 64) {
+    throw new Error(`AGENT_KEYPAIR base58 must decode to 64 bytes, got ${bytes.length}`);
+  }
+  return Keypair.fromSecretKey(bytes);
+}
 import { AgentVaultClient } from "./solana/client.js";
 import { X402Client } from "./x402/client.js";
 import { WorkerClient } from "./runtime/worker_client.js";
@@ -205,10 +229,12 @@ export function buildAgent(
   const connection = new Connection(config.solanaRpcUrl, "confirmed");
   let wallet: Keypair;
   if (config.agentKeypairBase58) {
-    const bytes = Buffer.from(config.agentKeypairBase58, "base64");
-    wallet = Keypair.fromSecretKey(bytes.length === 64 ? bytes : Keypair.generate().secretKey);
+    wallet = loadKeypair(config.agentKeypairBase58);
   } else {
     wallet = Keypair.generate();
+    console.warn(
+      `[buyer-agent] no AGENT_KEYPAIR set — generated throwaway wallet ${wallet.publicKey.toBase58()}; this wallet has no USDC and cannot pay.`,
+    );
   }
 
   const avc = new AgentVaultClient(connection, wallet);

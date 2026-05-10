@@ -1,8 +1,10 @@
 """POST /load — load decompressed KV cache into vLLM via LMCache."""
 from __future__ import annotations
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
+
+from ..auth import require_api_key
 
 router = APIRouter()
 
@@ -17,6 +19,7 @@ class LoadResponse(BaseModel):
 async def load_endpoint(
     file: UploadFile = File(...),
     cache_id: str = Form(...),
+    _api_key: str = Depends(require_api_key),
 ) -> LoadResponse:
     """Decompress blob and load into vLLM via LMCache."""
     try:

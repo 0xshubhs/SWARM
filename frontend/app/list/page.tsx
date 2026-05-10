@@ -1,7 +1,7 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/Card";
@@ -12,11 +12,13 @@ import { Progress } from "@/components/ui/Progress";
 import { api } from "@/lib/api";
 import { formatUsdc } from "@/lib/format";
 import { useUploadProgress } from "@/lib/hooks/useUploadProgress";
+import { listMemory } from "@/lib/anchor-client";
 
 type Step = "upload" | "metadata" | "submit" | "done";
 
 export default function ListPage() {
   const wallet = useWallet();
+  const { connection } = useConnection();
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
@@ -25,6 +27,9 @@ export default function ListPage() {
   const [sandboxPriceUsdc, setSandboxPriceUsdc] = useState(0.05);
   const [uploadId, setUploadId] = useState<string | null>(null);
   const [wsToken, setWsToken] = useState<string | null>(null);
+  const [signing, setSigning] = useState(false);
+  const [signError, setSignError] = useState<string | null>(null);
+  const [listingTx, setListingTx] = useState<string | null>(null);
 
   const onDrop = useCallback((accepted: File[]) => {
     if (accepted[0]) {
@@ -39,6 +44,68 @@ export default function ListPage() {
   });
 
   const progress = useUploadProgress(uploadId, wsToken);
+
+  // When the worker reports listing.pending, fetch the build args and ask the
+  // wallet to sign listMemory. We only fire once per upload to avoid double
+  // submissions if the WS reconnects.
+  useEffect(() => {
+    if (progress.phase !== "listing_pending") return;
+    if (!uploadId || !wallet.publicKey || signing || listingTx) return;
+    let cancelled = false;
+    (async () => {
+      setSigning(true);
+      setSignError(null);
+      try {
+        const finalizeRes = await api.finalizeUpload({
+          upload_id: uploadId,
+          seller_pubkey: wallet.publicKey!.toBase58(),
+          title,
+          tags: tags
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+          price_usdc: Math.round(priceUsdc * 1_000_000),
+          sandbox_price_usdc: Math.round(sandboxPriceUsdc * 1_000_000),
+        });
+        if (cancelled) return;
+        const { args } = finalizeRes as any;
+        const { signature } = await listMemory({
+          connection,
+          wallet,
+          arweaveTx: args.arweave_tx,
+          contentHash: Uint8Array.from(args.content_hash),
+          modelId: args.model_id,
+          quantSeed: BigInt(args.quant_seed),
+          bitsPerChannel: args.bits_per_channel,
+          seqLen: args.seq_len,
+          priceUsdc: BigInt(args.price_usdc),
+          sandboxPriceUsdc: BigInt(args.sandbox_price_usdc),
+          title: args.title,
+          tags: args.tags,
+        });
+        if (!cancelled) setListingTx(signature);
+      } catch (e: any) {
+        if (!cancelled) setSignError(e?.message ?? String(e));
+      } finally {
+        if (!cancelled) setSigning(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    progress.phase,
+    uploadId,
+    wallet.publicKey,
+    signing,
+    listingTx,
+    title,
+    tags,
+    priceUsdc,
+    sandboxPriceUsdc,
+    connection,
+    wallet,
+  ]);
 
   async function startSubmit() {
     if (!wallet.publicKey || !file) return;
@@ -133,8 +200,25 @@ export default function ListPage() {
               <PhaseRow phase="Compress" pct={progress.compressPercent} />
               <PhaseRow phase="Arweave" pct={progress.uploadPercent} />
               {progress.phase === "listing_pending" && (
-                <p className="text-sm text-amber-400">
-                  Sign the listMemory transaction to publish on-chain.
+                <p className="text-sm text-amber-400 inline-flex items-center gap-1">
+                  {signing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sign the listMemory transaction in your wallet…
+                    </>
+                  ) : (
+                    "Preparing listMemory transaction…"
+                  )}
+                </p>
+              )}
+              {listingTx && (
+                <p className="text-emerald-400 text-xs font-mono">
+                  listing tx: {listingTx}
+                </p>
+              )}
+              {signError && (
+                <p className="text-red-400 text-xs inline-flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" /> {signError}
                 </p>
               )}
               {progress.phase === "confirmed" && (

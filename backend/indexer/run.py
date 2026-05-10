@@ -50,7 +50,7 @@ async def _subscribe_loop(redis: aioredis.Redis) -> None:
                     sig = value.get("signature", "")
                     slot = msg.get("params", {}).get("result", {}).get("context", {}).get("slot", 0)
                     for ev in detect_events(logs):
-                        await handle_event(ev.name, logs, sig, slot, redis)
+                        await handle_event(ev, sig, slot, redis)
         except (WebSocketException, OSError) as e:
             log.warning("ws error: %s — reconnecting in %.1fs", e, backoff)
             await asyncio.sleep(backoff)

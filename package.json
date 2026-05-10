@@ -21,11 +21,16 @@
     "anchor:deploy": "anchor deploy",
     "cargo:build": "cargo build --workspace",
     "cargo:test": "cargo test --workspace",
-    "py:install": "pnpm --filter './backend' install:py && pnpm --filter './worker' install:py"
+    "py:install": "pnpm --filter './backend' install:py && pnpm --filter './worker' install:py",
+    "irys-sidecar": "node scripts/irys-sidecar.js"
+  },
+  "dependencies": {
+    "@irys/sdk": "^0.2.11"
   },
   "devDependencies": {
-    "turbo": "^2.1.0",
     "prettier": "^3.3.0",
+    "tsx": "^4.19.0",
+    "turbo": "^2.1.0",
     "typescript": "^5.6.0"
   }
 }

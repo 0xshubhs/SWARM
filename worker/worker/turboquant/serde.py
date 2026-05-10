@@ -115,7 +115,6 @@ def deserialize_blob(blob: bytes) -> tuple[np.ndarray, np.ndarray, dict]:
     L, two, H, S, D = metadata["shape"]
     target_d = metadata.get("target_d", D)
     N = L * two * H * S
-    N = L * two * H * S
     codes = np.frombuffer(codes_bytes, dtype=np.int8).reshape(N, target_d)
 
     proj_dim = metadata["proj_dim"]

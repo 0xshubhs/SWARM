@@ -48,9 +48,24 @@ class UploadFinalizeRequest(BaseModel):
     sandbox_price_usdc: int
 
 
+class ListMemoryArgs(BaseModel):
+    arweave_tx: str
+    content_hash: list[int]
+    model_id: str
+    quant_seed: int
+    bits_per_channel: int
+    seq_len: int
+    price_usdc: int
+    sandbox_price_usdc: int
+    title: str
+    tags: list[str]
+
+
 class UploadFinalizeResponse(BaseModel):
     listing_pda: str
-    instruction: dict
+    config_pda: str
+    program_id: str
+    args: ListMemoryArgs
 
 
 def _mint_ws_token(channel: str) -> str:
@@ -126,42 +141,34 @@ async def finalize_upload(
     if job.content_hash is None or job.arweave_tx is None:
         raise HTTPException(500, "compress job is missing hash or arweave_tx")
 
-    # Build the listMemory instruction so the frontend can sign + send.
-    # We return a serialized form — base64 instruction data + accounts list.
-    # Real serialization happens client-side via the IDL; here we provide the
-    # parameters and a stub instruction shape.
-    instruction = {
-        "program_id": settings.AGENTVAULT_PROGRAM_ID,
-        "name": "listMemory",
-        "args": {
-            "arweave_tx": job.arweave_tx,
-            "content_hash": list(job.content_hash),
-            "title": body.title,
-            "tags": body.tags,
-            "price_usdc": body.price_usdc,
-            "sandbox_price_usdc": body.sandbox_price_usdc,
-            # Default values — the seller's UI may surface these for editing.
-            "model_id": "qwen2.5-7b-instruct",
-            "quant_seed": 0,
-            "bits_per_channel": 35,
-            "seq_len": 0,
-        },
-        "accounts_hint": {
-            "seller": body.seller_pubkey,
-            "config_pda": _config_pda(),
-        },
-    }
-
-    # listing_pda derivation lives client-side (frontend has the seller's
-    # signer + content_hash). We surface the input the client needs.
-    listing_pda = "<derived client-side from seller + content_hash>"
-    return UploadFinalizeResponse(listing_pda=listing_pda, instruction=instruction)
-
-
-def _config_pda() -> str:
     from solders.pubkey import Pubkey
 
     from chain.client import program_id
 
-    pda, _ = Pubkey.find_program_address([b"config"], program_id())
-    return str(pda)
+    pid = program_id()
+    seller_pk = Pubkey.from_string(body.seller_pubkey)
+    config_pda, _ = Pubkey.find_program_address([b"config"], pid)
+    listing_pda, _ = Pubkey.find_program_address(
+        [b"listing", bytes(seller_pk), bytes(job.content_hash)],
+        pid,
+    )
+
+    args = ListMemoryArgs(
+        arweave_tx=job.arweave_tx,
+        content_hash=list(job.content_hash),
+        model_id=settings.HF_MODEL_ID if hasattr(settings, "HF_MODEL_ID") else "qwen2.5-7b-instruct",
+        quant_seed=int.from_bytes(job.content_hash[:8], "little") if job.content_hash else 0,
+        bits_per_channel=35,
+        seq_len=max(0, (job.input_size_bytes or 0) // (28 * 2 * 4 * 128 * 2)),
+        price_usdc=body.price_usdc,
+        sandbox_price_usdc=body.sandbox_price_usdc,
+        title=body.title,
+        tags=body.tags,
+    )
+
+    return UploadFinalizeResponse(
+        listing_pda=str(listing_pda),
+        config_pda=str(config_pda),
+        program_id=settings.AGENTVAULT_PROGRAM_ID,
+        args=args,
+    )

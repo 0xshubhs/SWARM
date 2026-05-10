@@ -1,6 +1,8 @@
 export const USDC_DECIMALS = 6;
 export const PROGRAM_ID =
-  process.env.NEXT_PUBLIC_PROGRAM_ID ?? "AgntVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1";
+  process.env.NEXT_PUBLIC_PROGRAM_ID ?? "HvWGEDbnRCVThyCNwUVpFRfWsHx2aqT9Ttotr4QovGCF";
+export const TREASURY =
+  process.env.NEXT_PUBLIC_TREASURY ?? "55LEmvuVgujxEvbrYBiDXBZmMxu3dMofVvT6uCq4q2xK";
 export const USDC_MINT =
   process.env.NEXT_PUBLIC_USDC_MINT ?? "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 export const NETWORK = (process.env.NEXT_PUBLIC_NETWORK ?? "devnet") as

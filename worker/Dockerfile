@@ -29,7 +29,6 @@ CMD ["bash", "-c", \
      "--max-model-len 8192 " \
      "--gpu-memory-utilization 0.7 " \
      "--port 8000 " \
-     "--host 0.0.0.0 " \
-     "--lora-modular true & " \
+     "--host 0.0.0.0 & " \
      "sleep 90 && " \
      "uv run uvicorn worker.main:app --host 0.0.0.0 --port 8001"]

@@ -4,8 +4,10 @@ from __future__ import annotations
 import hashlib
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
+from ..auth import require_api_key
 
 router = APIRouter()
 
@@ -25,6 +27,7 @@ class InferenceResponse(BaseModel):
 @router.post("/inference")
 async def inference_endpoint(
     req: InferenceRequest,
+    _api_key: str = Depends(require_api_key),
 ) -> InferenceResponse:
     """Full inference pipeline: Arweave fetch → decompress → vLLM query."""
     try:
