@@ -13,6 +13,12 @@ from ..auth import require_api_key
 
 router = APIRouter()
 
+# Per-row norms + qjl_scale are large for long prompts (one entry per
+# L*2*H*S row), and HTTP header limits will reject anything over ~16 KB.
+# The metadata is already encoded inside the binary blob, so the response
+# header just summarises a few cheap scalars.
+_METADATA_HEADER_KEYS = ("shape", "target_d", "bits", "seed", "proj_dim", "num_levels")
+
 
 @router.post("/compress")
 async def compress_endpoint(
@@ -45,6 +51,7 @@ async def compress_endpoint(
     original_size = kv_cache.numel() * kv_cache.element_size()
     compression_ratio = original_size / len(result.blob)
 
+    summary = {k: result.metadata[k] for k in _METADATA_HEADER_KEYS if k in result.metadata}
     return Response(
         content=result.blob,
         media_type="application/octet-stream",
@@ -52,6 +59,6 @@ async def compress_endpoint(
             "X-Original-Size": str(original_size),
             "X-Compressed-Size": str(len(result.blob)),
             "X-Compression-Ratio": f"{compression_ratio:.2f}",
-            "X-Metadata": json.dumps(result.metadata),
+            "X-Metadata-Summary": json.dumps(summary),
         },
     )
