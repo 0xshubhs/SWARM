@@ -1,0 +1,10 @@
+Write a production-grade Anchor program for a simple counter.
+Explain Solana's account model and how PDAs differ from regular accounts.
+Generate a TypeScript function that fetches all SPL token accounts for a wallet.
+What are the security considerations for upgradeable Solana programs?
+Write a Rust async function to query Jupiter's swap quote API.
+Implement a Python async generator that yields prime numbers.
+Explain the difference between async/await and coroutines in Python.
+Write a SQL query that finds duplicate records in a users table.
+Describe how a merkle tree is used for proving membership.
+Implement a basic rate limiter using a token bucket algorithm.
