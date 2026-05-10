@@ -43,7 +43,7 @@ async def benchmark_endpoint(
         import pandas as pd
 
         import benchmarks.quality as bq
-        bq.main(model, output_path)
+        bq.main(model, output_path, prompts_path=file)
         df = pd.read_csv(output_path)
         summary = (
             df.groupby("bits")

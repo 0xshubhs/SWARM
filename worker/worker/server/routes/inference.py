@@ -46,8 +46,8 @@ async def inference_endpoint(
         raise HTTPException(422, f"Decompression failed: {e}")
 
     try:
-        from runtime.cache_loader import load_into_vllm
-        from runtime.vllm_bridge import vllm_complete
+        from worker.runtime.cache_loader import load_into_vllm
+        from worker.runtime.vllm_bridge import vllm_complete
         cache_id = await load_into_vllm(kv_cache, f"arweave-{req.arweave_tx}")
         response = await vllm_complete(
             prompt=req.query,

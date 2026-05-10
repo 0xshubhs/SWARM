@@ -27,7 +27,7 @@ async def load_endpoint(
         raise HTTPException(400, f"Decompression failed: {e}")
 
     try:
-        from runtime.cache_loader import load_into_vllm
+        from worker.runtime.cache_loader import load_into_vllm
         cache_key = await load_into_vllm(kv_cache, cache_id)
     except ImportError:
         raise HTTPException(503, "Runtime integration not available (run with --extra gpu)")

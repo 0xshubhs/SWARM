@@ -105,7 +105,11 @@ class BetaQuantizer:
 
     def encode(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Map x to nearest level index. Returns int32 codes.
+        Map x to nearest level index using binary search.
+
+        Uses torch.searchsorted on inter-level boundaries instead of
+        materializing a full [..., d, num_levels] distance matrix.
+        Returns int32 codes.
 
         Args:
             x: tensor of shape [..., d]
@@ -113,10 +117,9 @@ class BetaQuantizer:
         Returns:
             int32 codes of shape [..., d] with values in [0, num_levels-1]
         """
-        x_unsq = x.unsqueeze(-1)
-        levels = self.levels.to(x.device)
-        distances = (x_unsq - levels).abs()
-        codes = distances.argmin(dim=-1)
+        boundaries = (self.levels[:-1] + self.levels[1:]) / 2
+        codes = torch.searchsorted(boundaries.to(x.device), x)
+        codes = codes.clamp(0, self.num_levels - 1)
         return codes.to(torch.int32)
 
     def decode(self, codes: torch.Tensor) -> torch.Tensor:

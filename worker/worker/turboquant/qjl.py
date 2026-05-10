@@ -20,7 +20,7 @@ def make_qjl_matrix(d: int, proj_dim: int, seed: int) -> torch.Tensor:
     """
     Gaussian random projection matrix W: R^d → R^proj_dim.
 
-    Each column is a unit vector (orthonormal columns, W^T @ W = I).
+    Columns are i.i.d. Gaussian scaled to unit norm in expectation.
     Uses a different seed than Hadamard to ensure independence.
     """
     rng = np.random.default_rng(seed + 1)

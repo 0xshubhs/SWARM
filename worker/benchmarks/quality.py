@@ -151,7 +151,7 @@ def benchmark_at_bits(
     }
 
 
-def main(model_name: str, output_csv: str | None = None) -> None:
+def main(model_name: str, output_csv: str | None = None, prompts_path: str | Path | None = None) -> None:
     """Run full benchmark matrix on Qwen model."""
     print(f"Loading {model_name}...")
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -162,7 +162,7 @@ def main(model_name: str, output_csv: str | None = None) -> None:
         trust_remote_code=True,
     )
 
-    prompts = load_prompts()
+    prompts = load_prompts(prompts_path)
     bit_rates = [2.5, 3.0, 3.5, 4.0]
     rows = []
 
