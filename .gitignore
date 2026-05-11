@@ -57,8 +57,8 @@ coverage/
 solana-keypair*.json
 
 # Local-only GPU runtime (vLLM + LMCache + Cloudflare tunnel).
-# Self-contained and personal — see runbook/README.md.
-runbook/
+# The venv is 7+ GB — keep it out; track scripts/config/logs only.
+runbook/.venv/
 
 # Claude Code session state
 .claude/

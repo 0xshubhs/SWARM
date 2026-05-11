@@ -1,0 +1,7 @@
+# Belt and suspenders: even if `runbook/` is removed from the root .gitignore
+# someday, this folder's heavy artifacts should never enter version control.
+.venv/
+logs/
+.run/
+*.pid
+*.log

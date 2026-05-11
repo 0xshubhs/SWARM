@@ -1,0 +1,11 @@
+# LMCache connector config. This is the hook point for TurboQuant.
+# Once you have a TurboQuant serde plugin written (see docs/03_TURBOQUANT_WORKER.md),
+# set `remote_serde: turboquant` here and LMCache will route every cache transfer
+# through your compress/decompress code.
+
+chunk_size: 256
+local_cpu: true
+max_local_cpu_size: 2.0      # GB of host RAM LMCache may use as a swap layer
+local_disk: null
+remote_url: null              # set to "lm://localhost:65432" once you stand up a remote store
+remote_serde: "naive"         # ← change to "turboquant" after writing the plugin
