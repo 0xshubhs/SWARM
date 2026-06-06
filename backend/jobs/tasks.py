@@ -29,22 +29,16 @@ async def dispatch_compression(
         })
         return raw, {"compression": "none", "model_id": "qwen2.5-7b-instruct"}
 
+    # Worker's /compress is multipart/form-data with a `file` field
+    # (see worker/worker/server/routes/compress.py).
     async with httpx.AsyncClient(timeout=600) as client:
-        async with client.stream(
-            "POST",
+        resp = await client.post(
             f"{settings.WORKER_URL.rstrip('/')}/compress",
-            content=raw,
-            headers={
-                "X-API-Key": settings.WORKER_API_KEY,
-                "Content-Type": "application/octet-stream",
-            },
-        ) as resp:
-            resp.raise_for_status()
-            chunks: list[bytes] = []
-            async for chunk in resp.aiter_bytes(64 * 1024):
-                chunks.append(chunk)
-            blob = b"".join(chunks)
-            return blob, {"compression": "turboquant", "model_id": "qwen2.5-7b-instruct"}
+            files={"file": ("kv.pt", raw, "application/octet-stream")},
+            headers={"X-API-Key": settings.WORKER_API_KEY},
+        )
+        resp.raise_for_status()
+        return resp.content, {"compression": "turboquant", "model_id": "qwen2.5-7b-instruct"}
 
 
 async def compress_and_upload(
